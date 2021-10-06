@@ -1,4 +1,4 @@
-const values= new Array(2);
+const values= {};
 
 // when you are trying to get dom elements on load 
 // you sould make sure that the window is loaded
@@ -9,12 +9,14 @@ window.onload = async function example() {
     const data = await response.text();
     const table = data.split('\n').slice(1);
 
+
     table.forEach( function(row,i){
         const columns = row.split('\t');
-        const id = columns[0];
-        const name = columns[1];
-        values[i] = [id,name];
+        const id = columns[0].replace('-', '');
+        const name = columns[1] ? columns[1].trim() : '';
+        values[name] = id;
     });
+    // console.log(values[3][1]);
 
     
 
@@ -29,13 +31,26 @@ window.onload = async function example() {
     const datalist = document.getElementById("datalist");
 
  
-
-    values.forEach(function(val){
+    Object.keys(values).forEach(function(name){
         var option= document.createElement("option");
-        option.value=val[1];
-        option.text=val[0];
+        option.value = name;
         datalist.appendChild(option);
     });
+
+
+    const inputField = document.getElementById("input");
+    const hiddenInputField = document.getElementById("hidden-input");
+
+    inputField.onchange = (e) => {
+        const name = e.target.value;
+        const id = values[name]
+        if(window.selectedItems) {
+            window.selectedItems.push(id)
+            console.log(window.selectedItems)
+        } else {
+            window.selectedItems = [id];
+        }
+    }
 }
 
 addvalue=(dl)=>{
@@ -46,6 +61,20 @@ addvalue=(dl)=>{
         var selectedTitle= document.createElement("h5");
         selectedTitle.classList.add("card-title");
         selectedTitle.innerHTML=dl.value;
+        
+
+        // for(i=0; i<=values.length; i++){
+            
+            
+            
+            // if(text2===text){
+            //     // selectedTitle.innerHTML=values[i][1];
+            //     console.log(values[i][0]);
+            // }
+            // else{
+            //     console.log("hi");
+            // }
+        // }
 
         var X_button_container = document.createElement("button");
         X_button_container.classList.add("close");
