@@ -1,4 +1,5 @@
 const values= {};
+const reverseValues = {};
 
 // when you are trying to get dom elements on load 
 // you sould make sure that the window is loaded
@@ -12,11 +13,12 @@ window.onload = async function example() {
 
     table.forEach( function(row,i){
         const columns = row.split('\t');
-        const id = columns[0].replace('-', '');
+        const id = columns[0];
         const name = columns[1] ? columns[1].trim() : '';
         values[name] = id;
+        reverseValues[id] = name;
     });
-    // console.log(values[3][1]);
+    
 
     
 
@@ -45,40 +47,29 @@ window.onload = async function example() {
         const name = e.target.value;
         const id = values[name]
         if(window.selectedItems) {
-            window.selectedItems.push(id)
-            console.log(window.selectedItems)
+            window.selectedItems.push(id);
+            // guessNext(window.selectedItems);
         } else {
             window.selectedItems = [id];
+            // guessNext(window.selectedItems);
         }
     }
 }
 
 addvalue=(dl)=>{
     if(dl.value){
-
+        // creating a card for viewing selected drug
         const maindiv=document.getElementById("selected-drugs");
 
         var selectedTitle= document.createElement("h5");
         selectedTitle.classList.add("card-title");
         selectedTitle.innerHTML=dl.value;
-        
-
-        // for(i=0; i<=values.length; i++){
-            
-            
-            
-            // if(text2===text){
-            //     // selectedTitle.innerHTML=values[i][1];
-            //     console.log(values[i][0]);
-            // }
-            // else{
-            //     console.log("hi");
-            // }
-        // }
 
         var X_button_container = document.createElement("button");
         X_button_container.classList.add("close");
-
+        // end of creating a card for viewing selected drug
+        
+        // x_button functioning : delete from both view and array
         X_button_container.addEventListener("click",function(){
             selectedContainer.remove();
             X_button_container.remove();
@@ -86,7 +77,14 @@ addvalue=(dl)=>{
             if(maindiv.firstElementChild==null){
                 calculate.style.display="none";
             }
+            var deleteTarget = selectedContainer.firstChild.firstChild.innerHTML;
+            var deleteTargetId= values[deleteTarget];
+
+            var index = window.selectedItems.indexOf(deleteTargetId);
+            window.selectedItems.splice(index, 1);
+            // guessNext(window.selectedItems);
         });
+        // end of x_button functioning
 
         var X_button = document.createElement("div");
         X_button.innerHTML="&times";
@@ -107,14 +105,9 @@ addvalue=(dl)=>{
 
         const calculate= document.getElementById("calculate");
         
-        const drugs_list=[];
-        drugs_list.push(selectedTitle.innerHTML);
-        
         if(maindiv){
-            // console.log(maindiv.firstElementChild);
             calculate.style.display="inline";
             calculate.style.float="left";
-            
         }
         else{
             calculate.style.display="none";
@@ -123,17 +116,136 @@ addvalue=(dl)=>{
     }   
 }
 
-calc=()=>{
-    const maindiv=document.getElementById("selected-drugs");
-    const lengthOfChildren = maindiv.childNodes.length -1;
-    var child_nodes_names = new Array;
-
-    const h5 =document.getElementsByTagName("h5");
-
-    for( var i=1; i<=lengthOfChildren; i++ ){
-        child_nodes_names.push(maindiv.childNodes[i].firstChild.firstChild.innerHTML)
-    }
-
-    // all drug titles are stored in child_nodes_names so send it to serveice
+// services
+// service1 : guessNext
+guessNext=(selectedItems)=>{
+    const xhr = new XMLHttpRequest();
     
+    xhr.open("POST","http://217.218.215.67:6645/Drug/GuessNext",true);
+    xhr.setRequestHeader("Content-type","application/json");
+    xhr.send(selectedItems);
+    const responseId = xhr.responseText;
+
+    if(responseId != null){
+        var predict = document.getElementById("predict-container");
+        if(! predict.firstElementChild){
+            var predictInput = document.createElement("input");
+            predictInput.setAttribute("readOnly","true");
+            predictInput.value = reverseValues[responseId];
+            predictInput.style.width= "150px";
+            predictInput.style.height="50px";
+            predictInput.style.color="black";
+            predictInput.style.backgroundColor="green";
+    
+            var addButton = document.createElement("button");
+            addButton.innerHTML="add"
+            addButton.style.width="100px";
+            
+            addButton.onclick = ()=>{
+                addvalue(predictInput);
+                if(window.selectedItems) {
+                    window.selectedItems.push(responseId);
+                    // guessNext(window.selectedItems);
+                } else {
+                    window.selectedItems = [responseId];
+                    // guessNext(window.selectedItems);
+                }
+            }
+            predict.appendChild(predictInput);
+            predict.appendChild(addButton);
+        }
+        else{
+            while(predict.firstElementChild){
+                predict.removeChild(predict.firstElementChild);
+            }
+            var predictInput = document.createElement("input");
+            predictInput.setAttribute("readOnly","true");
+            predictInput.value = reverseValues[responseId];
+            predictInput.style.width= "150px";
+            predictInput.style.height="50px";
+            predictInput.style.color="black";
+            predictInput.style.backgroundColor="green";
+    
+            var addButton = document.createElement("button");
+            addButton.innerHTML="add"
+            addButton.style.width="100px";
+            
+            addButton.onclick = ()=>{
+                addvalue(predictInput);
+                if(window.selectedItems) {
+                    window.selectedItems.push(responseId);
+                    // guessNext(window.selectedItems);
+                } else {
+                    window.selectedItems = [responseId];
+                    // guessNext(window.selectedItems);
+                }
+            }
+            predict.appendChild(predictInput);
+            predict.appendChild(addButton);
+        }   
+    }   
 }
+
+// service 2: likelihood
+
+calc=()=>{
+    const listOfObjects = [];
+    for( i=0; i<window.selectedItems.length; i++){
+        const list =[...window.selectedItems];
+        var item = list[i];
+        list.splice(i,1);
+
+        var data ={
+            "list": list,
+            "item": item
+        }
+
+        // error: cors
+        // const xhr = new XMLHttpRequest();
+        // xhr.open("POST","http://217.218.215.67:6645/Drug/Likelihood",true);
+        // xhr.setRequestHeader("Content-type","application/json");
+        // xhr.send(data);
+        // const response = xhr.responseText;
+
+        const singleObject = {};
+        singleObject.name = reverseValues[item];
+        singleObject.id = item;
+        // singleObject.probability = response;
+        listOfObjects.push(singleObject);
+        
+    }
+    // console.log(listOfObjects);
+    // list of objects is an array of objects which each object has name,id,probability of a selected drug.
+    // then you should clear the whole page and only show the results.
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// var index = window.selectedItems[i];
+//         var list= window.selectedItems.splice(index, 1);
+//         var item= window.selectedItems[i];
+//         var data = {
+//             "list":list,
+//             "item":item
+//         } 
+//         const xhr = new XMLHttpRequest();
+//         xhr.open("POST","http://217.218.215.67:6645/Drug/Likelihood",true);
+//         xhr.setRequestHeader("Content-type","application/json");
+//         xhr.send(data);
+//         const responseId = xhr.responseText;
