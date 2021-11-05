@@ -48,10 +48,10 @@ window.onload = async function example() {
         const id = values[name]
         if(window.selectedItems) {
             window.selectedItems.push(id);
-            // guessNext(window.selectedItems);
+            guessNext(window.selectedItems);
         } else {
             window.selectedItems = [id];
-            // guessNext(window.selectedItems);
+            guessNext(window.selectedItems);
         }
     }
 }
@@ -82,7 +82,7 @@ addvalue=(dl)=>{
 
             var index = window.selectedItems.indexOf(deleteTargetId);
             window.selectedItems.splice(index, 1);
-            // guessNext(window.selectedItems);
+            guessNext(window.selectedItems);
         });
         // end of x_button functioning
 
@@ -111,7 +111,6 @@ addvalue=(dl)=>{
         }
         else{
             calculate.style.display="none";
-            
         }
     }   
 }
@@ -129,59 +128,58 @@ guessNext=(selectedItems)=>{
     if(responseId != null){
         var predict = document.getElementById("predict-container");
         if(! predict.firstElementChild){
-            var predictInput = document.createElement("input");
+            var predictInput = document.createElement("textarea");
             predictInput.setAttribute("readOnly","true");
-            predictInput.value = reverseValues[responseId];
-            predictInput.style.width= "150px";
-            predictInput.style.height="50px";
+            predictInput.value ="پیشنهاد: " + reverseValues[responseId];
+            predictInput.style.width= "350px";
+            predictInput.style.height="70px";
             predictInput.style.color="black";
-            predictInput.style.backgroundColor="green";
+            predictInput.style.marginLeft="25px";
+            predictInput.style.borderRadius="5px";
+            predictInput.style.border="1px dashed #212121";
+            predictInput.style.backgroundColor="#0097A7";
+
+
+            var br = document.createElement("br");
     
             var addButton = document.createElement("button");
-            addButton.innerHTML="add"
+            addButton.classList.add('btn');
+            addButton.classList.add('btn-primary');
+            addButton.innerHTML="اضافه کردن";
             addButton.style.width="100px";
+            addButton.style.marginLeft="25px"
             
             addButton.onclick = ()=>{
                 addvalue(predictInput);
                 if(window.selectedItems) {
                     window.selectedItems.push(responseId);
-                    // guessNext(window.selectedItems);
+                    guessNext(window.selectedItems);
                 } else {
                     window.selectedItems = [responseId];
-                    // guessNext(window.selectedItems);
+                    guessNext(window.selectedItems);
                 }
             }
             predict.appendChild(predictInput);
+            predict.appendChild(br);
             predict.appendChild(addButton);
         }
         else{
             while(predict.firstElementChild){
                 predict.removeChild(predict.firstElementChild);
             }
-            var predictInput = document.createElement("input");
-            predictInput.setAttribute("readOnly","true");
-            predictInput.value = reverseValues[responseId];
-            predictInput.style.width= "150px";
-            predictInput.style.height="50px";
-            predictInput.style.color="black";
-            predictInput.style.backgroundColor="green";
-    
-            var addButton = document.createElement("button");
-            addButton.innerHTML="add"
-            addButton.style.width="100px";
+
+            guessNext(window.selectedItems);
             
             addButton.onclick = ()=>{
                 addvalue(predictInput);
                 if(window.selectedItems) {
                     window.selectedItems.push(responseId);
-                    // guessNext(window.selectedItems);
+                    guessNext(window.selectedItems);
                 } else {
                     window.selectedItems = [responseId];
-                    // guessNext(window.selectedItems);
+                    guessNext(window.selectedItems);
                 }
             }
-            predict.appendChild(predictInput);
-            predict.appendChild(addButton);
         }   
     }   
 }
@@ -201,16 +199,16 @@ calc=()=>{
         }
 
         // error: cors
-        // const xhr = new XMLHttpRequest();
-        // xhr.open("POST","http://217.218.215.67:6645/Drug/Likelihood",true);
-        // xhr.setRequestHeader("Content-type","application/json");
-        // xhr.send(data);
-        // const response = xhr.responseText;
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST","http://217.218.215.67:6645/Drug/Likelihood",true);
+        xhr.setRequestHeader("Content-type","application/json");
+        xhr.send(data);
+        const response = xhr.responseText;
 
         const singleObject = {};
         singleObject.name = reverseValues[item];
         singleObject.id = item;
-        // singleObject.probability = response;
+        singleObject.probability = response;
         listOfObjects.push(singleObject);
         
     }
